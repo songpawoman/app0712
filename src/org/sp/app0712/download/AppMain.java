@@ -72,6 +72,38 @@ public class AppMain extends JFrame implements ActionListener{
 		}
 	}
 	
+	public int getTotalByte(URL url) {
+		int count=0;
+		
+		int data=-1;
+		
+		InputStream is=null;
+		try {
+			is=url.openStream();
+			
+			while(true) {
+				data = is.read();//1바이트 읽기 
+				if(data==-1)break;
+				count++;
+			}
+			
+			is.reset(); //다시 원위치 
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}finally {
+			if(is!=null) {
+				try {
+					is.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		return count;
+	}
+	
 	//인터넷상의 자원의 대상으로, 빨대를 꽂아 실행중인 프로그램으로 들이마시기
 	//동시에 지정한 경로로 데이터 출력
 	public void download() {
@@ -80,15 +112,29 @@ public class AppMain extends JFrame implements ActionListener{
 		
 		try {
 			URL url=new URL(t_url.getText());
+			
+			int total = getTotalByte(url);
+			
 			is=url.openStream();
 			fos=new FileOutputStream(la_dest.getText());
 			
+			
+			System.out.println("total is "+total+" kbyte");
+			
 			//1바이트씩 읽어, 파일에 출력해본다
 			int data=-1;
+			int readCount=0;
 			
 			while(true) {
 				data = is.read();//1바이트 읽기 
 				if(data==-1)break;
+				readCount++;
+				
+				double ratio=(readCount /(double)total) * 100;
+				System.out.println(ratio);
+				
+				bar.setValue((int)ratio);
+				
 				fos.write(data);//1바이트 쓰기
 			}
 			JOptionPane.showMessageDialog(this, "다운로드 완료");
